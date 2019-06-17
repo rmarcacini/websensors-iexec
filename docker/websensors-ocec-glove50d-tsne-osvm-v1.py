@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[20]:
-
-
 #libraries
 import sys
 import hashlib
@@ -254,7 +251,13 @@ def iexec_callback(sensor_id, status):
     file.close() 
 
 
-# In[22]:
+def get_parameter(parameter,parameters_vec):
+    for item in parameters_vec:
+        if 'name' in item and 'value' in item and item['name']==parameter:
+            log('Parameter '+item['name']+' = '+str(item['value']))
+            return float(item['value'])
+
+    return None
 
 
 def main():
@@ -340,27 +343,47 @@ def main():
         
     
     # algorithm parameters (default)
+    min_events = 50;
+    min_confidence = 0.7
+    max_distance_radius_km = 500
+    tsne_perplexity = 5
+    tsne_epsilon = 10
+    osvm_nu = 0.1
+    osvm_gamma = 0.1
     textual_distance_weight = 1
     geographic_distance_weight = 0.5
     smooth = 2
-    max_distance_radius_km = 500
-    prediction_confidence = 5
-    
+        
     try:
-        if('textual_distance_weight' in sensor_data['parameters']):
-            textual_distance_weight = float(sensor_data['parameters']['textual_distance_weight'])
-            
-        if('geographic_distance_weight' in sensor_data['parameters']):
-            geographic_distance_weight = float(sensor_data['parameters']['geographic_distance_weight'])
-            
-        if('smooth' in sensor_data['parameters']):
-            smooth = float(sensor_data['smooth']['parameters'])
-            
-        if('max_distance_radius_km' in sensor_data['parameters']):
-            max_distance_radius_km = float(sensor_data['parameters']['max_distance_radius_km'])
-            
-        if('prediction_confidence' in sensor_data['parameters']):
-            prediction_confidence = float(sensor_data['parameters']['prediction_confidence'])
+        p1 = get_parameter('Min. Events',sensor_data['parameters'])
+        if p1 != None: min_events=p1
+
+        p2 = get_parameter('Min. Confidence',sensor_data['parameters'])
+        if p2 != None: min_confidence=p2
+
+        p3 = get_parameter('Radius',sensor_data['parameters'])
+        if p3 != None: max_distance_radius_km=p3
+
+        p4 = get_parameter('t-SNE Perplexity',sensor_data['parameters'])
+        if p4 != None: tsne_perplexity=p4
+
+        p5 = get_parameter('t-SNE Epsilon',sensor_data['parameters'])
+        if p5 != None: tsne_epsilon=p5
+
+        p6 = get_parameter('OSVM Nu',sensor_data['parameters'])
+        if p6 != None: osvm_nu=p6
+
+        p7 = get_parameter('OSVM Gamma',sensor_data['parameters'])
+        if p7 != None: osvm_gamma=p7
+
+        p8 = get_parameter('Textual Distance Weight',sensor_data['parameters'])
+        if p8 != None: textual_distance_weight=p8
+
+        p9 = get_parameter('Geographic Distance Weight',sensor_data['parameters'])
+        if p9 != None: geographic_distance_weight=p9
+
+        p10 = get_parameter('Smooth',sensor_data['parameters'])
+        if p10 != None: smooth=p10
             
     except Exception as e:
         log('Error. Invalid sensor parameters: '+sensor_id)
@@ -481,8 +504,8 @@ def main():
         plt.xlabel(
             "error train: %d/%d"
             % (n_error_train, len(y_train)))
-        #plt.show()
-        plt.savefig('classifier-model.png')
+
+        plt.savefig('classifier-model.png',bbox_inches='tight',dpi=100)
         
         
         # saving events
@@ -496,12 +519,17 @@ def main():
             count += 1
 
             
-        
-        if(total_predicted >= prediction_confidence):
-            log('A total of '+str(total_predicted)+' similar events were identified.')
+        confidence = total_predicted / min_events
+        if confidence > 1: confidence=1.0
+        if(count < min_events):
+            confidence = 0
+            iexec_callback(sensor_id,'00')
+
+        if(confidence >= min_confidence):
+            log('A total of '+str(total_predicted)+' similar events were identified. Confidence = '+str(confidence))
             iexec_callback(sensor_id,'02')
         else:
-            log('A total of '+str(total_predicted)+' similar events were identified.')
+            log('A total of '+str(total_predicted)+' similar events were identified. Confidence = '+str(confidence))
             iexec_callback(sensor_id,'01')
     
     except Exception as e:
@@ -509,12 +537,5 @@ def main():
         iexec_callback(sensor_id,'05')
         exit(0)
 
-        
-#sys.argv = ["prog", "56925304"]
-
 if __name__ == "__main__":
     main()
-    
-    
-#exit(0)
-
