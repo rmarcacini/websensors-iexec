@@ -481,7 +481,7 @@ def main():
         Z = clf.decision_function(np.c_[xx.ravel(), yy.ravel()])
         Z = Z.reshape(xx.shape)
 
-        plt.title("SVM One-Class Event Prediction")
+        plt.title("Websensors-OCEV-GloVe50d-tSNE-OSVM-v1")
         plt.contourf(xx, yy, Z, levels=np.linspace(Z.min(), 0, 10), cmap=plt.cm.PuBu)
         a = plt.contour(xx, yy, Z, levels=[0], linewidths=2, colors='darkred')
         plt.contourf(xx, yy, Z, levels=[0, Z.max()], colors='palevioletred')
@@ -539,3 +539,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
+    
