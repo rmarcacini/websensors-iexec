@@ -61,6 +61,10 @@ contract WebsensorsDoracle is WebsensorsDoracleInterface {
         sensors_status[last_sensor_id] = last_sensor_status;
         
     }
- 
+
+    function sensors_status(uint _id_sensor) public returns (uint){
+        return sensors_status[_id_sensor];
+    }
+
   
 }
