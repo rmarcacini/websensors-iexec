@@ -57,12 +57,8 @@ contract WebsensorsDoracle is WebsensorsDoracleInterface {
             if(i==4) last_sensor_id += c;
         }
         
-        if(sensors_status[last_sensor_id] != 2){
-        
-            last_sensor_status = uint8(b[5]);
-            sensors_status[last_sensor_id] = last_sensor_status;
-            
-        }
+        last_sensor_status = uint8(b[5]);
+        sensors_status[last_sensor_id] = last_sensor_status;
         
     }
  
